@@ -1,0 +1,15 @@
+language: ruby
+dist: bionic
+cache: bundler
+
+before_install:
+- sudo apt-get install -y debsigs
+- echo $DEBSIGN | base64 -d | gpg --import
+
+script:
+- bundle install
+- make
+- debsigs --sign=origin --defualt-key=63F29D43F8F9E605 promtail_*.deb
+
+after_success:
+- bundle exec deb-s3 upload --s3-region=eu-west-1 --suite stable --origin "Andrew Rowson" --sign=63F29D43F8F9E605 --bucket apt-growse-com promtail_*.deb
