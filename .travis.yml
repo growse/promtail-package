@@ -3,7 +3,7 @@ dist: bionic
 cache: bundler
 
 before_install:
-- sudo apt-get install -y debsigs
+- sudo apt-get install -y debsigs libsystemd-dev
 - echo $DEBSIGN | base64 -d | gpg --import --batch
 
 script:
