@@ -3,13 +3,12 @@ dist: bionic
 cache: bundler
 
 before_install:
-- sudo apt-get install -y debsigs libsystemd-dev
+- sudo apt-get install -y libsystemd-dev
 - echo $DEBSIGN | base64 -d | gpg --import --batch
 
 script:
 - bundle install
 - make
-- debsigs --sign=origin --default-key=63F29D43F8F9E605 promtail_*.deb
 
 after_success:
-- bundle exec deb-s3 upload --s3-region=eu-west-1 --suite stable --origin "Andrew Rowson" --sign=63F29D43F8F9E605 --bucket apt-growse-com promtail_*.deb
+- bundle exec deb-s3 upload --s3-region=eu-west-1 --sign=63F29D43F8F9E605 --gpg-options="\-\-batch \-\-no-use-agent" --suite stable --origin "Andrew Rowson" --sign=63F29D43F8F9E605 --bucket apt-growse-com promtail_*.deb
