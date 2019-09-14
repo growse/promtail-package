@@ -26,4 +26,4 @@ usr/bin/promtail: $(LOKIHOME)/cmd/promtail/promtail
 	mkdir -p usr/bin && cp $(LOKIHOME)/cmd/promtail/promtail usr/bin/promtail
 
 $(DEBNAME): usr/bin/promtail
-	bundle exec fpm -s dir -t deb -n promtail --description "Loki promtail log forwarder" --url https://github.com/grafana/loki/blob/master/docs/promtail.md --prefix / -a $(ARCH) -v $(VERSION) --deb-systemd lib/systemd/system/promtail.service --config-files /etc/promtail/promtail.yml etc usr lib
+	bundle exec fpm -s dir -t deb -n promtail --description "Loki promtail log forwarder" --url https://github.com/grafana/loki/blob/master/docs/promtail.md --prefix / -a $(ARCH) -v $(VERSION) --deb-systemd lib/systemd/system/promtail.service --config-files /etc/promtail/promtail.yml etc usr
