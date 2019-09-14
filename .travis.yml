@@ -11,4 +11,4 @@ script:
 - make
 
 after_success:
-- bundle exec deb-s3 upload --s3-region=eu-west-1 --sign=63F29D43F8F9E605 --gpg-options="\-\-batch \-\-no-use-agent" --suite stable --origin "Andrew Rowson" --sign=63F29D43F8F9E605 --bucket apt-growse-com promtail_*.deb
+- bundle exec deb-s3 upload --s3-region=eu-west-1 --sign=63F29D43F8F9E605 --gpg-options="\-\-batch" --suite stable --origin "Andrew Rowson" --sign=63F29D43F8F9E605 --bucket apt-growse-com promtail_*.deb
