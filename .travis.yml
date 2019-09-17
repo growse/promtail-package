@@ -4,13 +4,13 @@ cache: bundler
 
 before_install:
 - sudo apt-get install -y libsystemd-dev
-- echo $DEBSIGN | base64 -d | gpg --import --batch
+- echo 'aaaaaaaa' > passphrase_file
+- echo $DEBSIGN | base64 -d | gpg --import --batch --pinentry-mode=loopback --passphrase-file passphrase_file
 
 script:
 - bundle install
 - make
 
 after_success:
-- echo 'aaaaaaaa' > passphrase_file
 - bundle exec deb-s3 upload --s3-region=eu-west-1 --sign=63F29D43F8F9E605 --gpg-options="\-\-pinentry\-mode=loopback \-\-passphrase\-file passphrase_file \-\-batch" --suite stable --origin "Andrew Rowson" --sign=63F29D43F8F9E605 --bucket apt-growse-com promtail_*.deb
 - bundle exec deb-s3 verify --sign=63F29D43F8F9E605 --gpg-options="\-\-pinentry\-mode=loopback \-\-passphrase\-file passphrase_file \-\-batch" -f --s3-region=eu-west-1 -b apt-growse-com
