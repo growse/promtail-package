@@ -5,7 +5,7 @@ cache: bundler
 before_install:
 - sudo apt-get install -y libsystemd-dev
 - echo 'aaaaaaaa' > passphrase_file
-- echo $DEBSIGN | base64 -d | gpg --import --batch --pinentry-mode=loopback --passphrase-file passphrase_file
+- echo $DEBSIGN | base64 -d | gpg --import --batch
 
 script:
 - bundle install
