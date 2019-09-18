@@ -1,9 +1,10 @@
 VERSION := v0.3.0
+DEBVERSION := $(VERSION:v%=%)
 
 GOPATH := $(abspath gopath)
 LOKIHOME := $(GOPATH)/src/github.com/grafana/loki
 ARCH := amd64
-DEBNAME := promtail_$(VERSION)_$(ARCH).deb
+DEBNAME := promtail_$(DEBVERSION)_$(ARCH).deb
 
 .PHONY: package
 package: $(DEBNAME)
@@ -26,4 +27,9 @@ usr/bin/promtail: $(LOKIHOME)/cmd/promtail/promtail
 	mkdir -p usr/bin && cp $(LOKIHOME)/cmd/promtail/promtail usr/bin/promtail
 
 $(DEBNAME): usr/bin/promtail
-	bundle exec fpm -s dir -t deb -n promtail --description "Loki promtail log forwarder" --url https://github.com/grafana/loki/blob/master/docs/promtail.md --prefix / -a $(ARCH) -v $(VERSION) --deb-systemd lib/systemd/system/promtail.service --config-files /etc/promtail/promtail.yml etc usr
+	bundle exec fpm -s dir -t deb -n promtail --description "Loki promtail log forwarder" --url https://github.com/grafana/loki/blob/master/docs/promtail.md --prefix / -a $(ARCH) -v $(DEBVERSION) --deb-systemd lib/systemd/system/promtail.service --config-files /etc/promtail/promtail.yml etc usr
+
+.PHONY: clean
+clean:
+	rm *.deb
+	rm -rf $(GOPATH)
