@@ -1,35 +1,40 @@
 VERSION := v0.3.0
-DEBVERSION := $(VERSION:v%=%)
+ARCH := amd64 arm
 
+# Setup
+DEBVERSION := $(VERSION:v%=%)
 GOPATH := $(abspath gopath)
 LOKIHOME := $(GOPATH)/src/github.com/grafana/loki
-ARCH := amd64
-DEBNAME := promtail_$(DEBVERSION)_$(ARCH).deb
+
+# Let's map from go architectures to deb architectures, because they're not the same!
+DEB_arm_ARCH := armhf
+DEB_amd64_ARCH := amd64
+
+# CC Toolchain mapping
+CC_FOR_LINUX_ARM := arm-linux-gnueabi-gcc
+
+.EXPORT_ALL_VARIABLES:
 
 .PHONY: package
-package: $(DEBNAME)
-
-.PHONY: build
-build: $(LOKIHOME)/cmd/promtail/promtail
+package: $(addsuffix .deb, $(addprefix promtail_$(DEBVERSION)_, $(foreach a, $(ARCH), $(a))))
 
 .PHONY: checkout
 checkout: $(LOKIHOME)
 
-$(LOKIHOME):
+$(GOPATH):
 	mkdir $(GOPATH)
+
+$(LOKIHOME): $(GOPATH)
 	git clone https://github.com/grafana/loki $(LOKIHOME)
 	cd $(LOKIHOME) && git checkout $(VERSION)
 
-$(LOKIHOME)/cmd/promtail/promtail: $(LOKIHOME)
-	make -C "$(LOKIHOME)" promtail
+$(LOKIHOME)/dist/promtail_linux_%: $(LOKIHOME)
+	cd $(LOKIHOME) && GOOS=linux GOARCH=$* go build -o dist/promtail_linux_$* ./cmd/promtail
 
-usr/bin/promtail: $(LOKIHOME)/cmd/promtail/promtail
-	mkdir -p usr/bin && cp $(LOKIHOME)/cmd/promtail/promtail usr/bin/promtail
-
-$(DEBNAME): usr/bin/promtail
-	bundle exec fpm -s dir -t deb -n promtail --description "Loki promtail log forwarder" --url https://github.com/grafana/loki/blob/master/docs/promtail.md --prefix / -a $(ARCH) -v $(DEBVERSION) --deb-systemd lib/systemd/system/promtail.service --config-files /etc/promtail/promtail.yml etc usr
+promtail_$(DEBVERSION)_%.deb: $(LOKIHOME)/dist/promtail_linux_%
+	bundle exec fpm -s dir -t deb -n promtail --description "Loki promtail log forwarder" --url https://github.com/grafana/loki/blob/master/docs/promtail.md --deb-changelog $(LOKIHOME)/CHANGELOG.md --prefix / -a $(DEB_$*_ARCH) -v $(DEBVERSION) --deb-systemd promtail.service --config-files /etc/promtail/promtail.yml promtail.yml=/etc/promtail/promtail.yml $<=/usr/bin/promtail
 
 .PHONY: clean
 clean:
-	rm *.deb
+	rm -f *.deb
 	rm -rf $(GOPATH)
