@@ -9,7 +9,7 @@ before_install:
 
 script:
 - bundle install
-- make
+- make -j $(grep -c ^processor /proc/cpuinfo)
 
 after_success:
 - gpg --list-secret-keys
