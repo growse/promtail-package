@@ -1,6 +1,11 @@
 language: go
 dist: bionic
 
+
+go:
+  - 1.13.x
+
+
 before_install:
 - sudo apt-get install -y libsystemd-dev
 - echo 'aaaaaaaa' > passphrase_file

@@ -2,7 +2,8 @@ VERSION := v0.3.0
 ARCH := amd64 arm
 
 # Setup
-DEBVERSION := $(VERSION:v%=%)
+TRAVIS_BUILD_NUMBER ?= 0
+DEBVERSION := $(VERSION:v%=%)-$(TRAVIS_BUILD_NUMBER)
 GOPATH := $(abspath gopath)
 LOKIHOME := $(GOPATH)/src/github.com/grafana/loki
 
