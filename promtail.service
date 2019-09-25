@@ -1,5 +1,5 @@
 [Unit]
-Description=Promtail Loki Agent
+Description=Loki Promtail Agent
 
 [Service]
 Type=simple
