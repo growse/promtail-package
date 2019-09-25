@@ -1,11 +1,16 @@
+DEBNAME := promtail
+APP_REMOTE := github.com/grafana/loki
 VERSION := v0.3.0
+APPDESCRIPTION := Log agent for Loki
+APPURL := https://github.com/grafana/loki/blob/master/docs/clients/promtail/
 ARCH := amd64 arm
+GO_BUILD_SOURCE := ./cmd/promtail
 
 # Setup
-TRAVIS_BUILD_NUMBER ?= 0
-DEBVERSION := $(VERSION:v%=%)-$(TRAVIS_BUILD_NUMBER)
+BUILD_NUMBER ?= 0
+DEBVERSION := $(VERSION:v%=%)-$(BUILD_NUMBER)
 GOPATH := $(abspath gopath)
-LOKIHOME := $(GOPATH)/src/github.com/grafana/loki
+APPHOME := $(GOPATH)/src/$(APP_REMOTE)
 
 # Let's map from go architectures to deb architectures, because they're not the same!
 DEB_arm_ARCH := armhf
@@ -17,23 +22,26 @@ CC_FOR_LINUX_ARM := arm-linux-gnueabi-gcc
 .EXPORT_ALL_VARIABLES:
 
 .PHONY: package
-package: $(addsuffix .deb, $(addprefix promtail_$(DEBVERSION)_, $(foreach a, $(ARCH), $(a))))
+package: $(addsuffix .deb, $(addprefix $(DEBNAME)_$(DEBVERSION)_, $(foreach a, $(ARCH), $(a))))
+
+.PHONY: build
+build: $(addprefix $(APPHOME)/dist/$(DEBNAME)_linux_, $(foreach a, $(ARCH), $(a)))
 
 .PHONY: checkout
-checkout: $(LOKIHOME)
+checkout: $(APPHOME)
 
 $(GOPATH):
 	mkdir $(GOPATH)
 
-$(LOKIHOME): $(GOPATH)
-	git clone https://github.com/grafana/loki $(LOKIHOME)
-	cd $(LOKIHOME) && git checkout $(VERSION)
+$(APPHOME): $(GOPATH)
+	git clone https://$(APP_REMOTE) $(APPHOME)
+	cd $(APPHOME) && git checkout $(VERSION)
 
-$(LOKIHOME)/dist/promtail_linux_%: $(LOKIHOME)
-	cd $(LOKIHOME) && GOOS=linux GOARCH=$* go build -o dist/promtail_linux_$* ./cmd/promtail
+$(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
+	cd $(APPHOME) && GOOS=linux GOARCH=$* go build -o dist/$(DEBNAME)_linux_$* $(GO_BUILD_SOURCE)
 
-promtail_$(DEBVERSION)_%.deb: $(LOKIHOME)/dist/promtail_linux_%
-	bundle exec fpm -s dir -t deb -n promtail --description "Loki promtail log forwarder" --url https://github.com/grafana/loki/blob/master/docs/promtail.md --deb-changelog $(LOKIHOME)/CHANGELOG.md --prefix / -a $(DEB_$*_ARCH) -v $(DEBVERSION) --deb-systemd promtail.service --config-files /etc/promtail/promtail.yml promtail.yml=/etc/promtail/promtail.yml $<=/usr/bin/promtail
+$(DEBNAME)_$(DEBVERSION)_%.deb: $(APPHOME)/dist/$(DEBNAME)_linux_%
+	bundle exec fpm -s dir -t deb -n $(DEBNAME) --description "$(APPDESCRIPTION)" --url $(APPURL) --deb-changelog $(APPHOME)/CHANGELOG.md --prefix / -a $(DEB_$*_ARCH) -v $(DEBVERSION) --deb-systemd prometheus-node-exporter.service --config-files /etc/default/prometheus-node-exporter prometheus-node-exporter.defaults=/etc/default/prometheus-node-exporter $<=/usr/sbin/node_exporter
 
 .PHONY: clean
 clean:
