@@ -1,5 +1,11 @@
 name: Build, package and deploy
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
@@ -17,6 +23,12 @@ jobs:
         uses: actions/checkout@v1
       - name: Build
         run: make build
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    needs: build
+    steps:
       - name: Set up Ruby 2.6
         uses: actions/setup-ruby@v1
         with:
