@@ -28,7 +28,11 @@ jobs:
         with:
           name: dist
           path: gopath/src/github.com/grafana/loki/dist
-
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: changelog
+          path: gopath/src/github.com/grafana/loki/CHANGELOG.md
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
@@ -42,6 +46,11 @@ jobs:
         with:
           name: dist
           path: gopath/src/github.com/grafana/loki/dist
+      - name: Download changelog artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: changelog
+          path: gopath/src/github.com/grafana/loki/CHANGELOG.md
       - name: Set up Ruby 2.6
         uses: actions/setup-ruby@v1
         with:
