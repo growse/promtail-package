@@ -64,7 +64,9 @@ jobs:
         with:
           token: ${{secrets.github_token}}
       - name: Package
-        run: make package
+        run: |
+          touch gopath/src/github.com/grafana/loki/dist/*
+          make package
       - name: Upload to S3 Apt repo
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
