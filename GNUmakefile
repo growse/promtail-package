@@ -17,15 +17,17 @@ DEB_arm_ARCH := armhf
 DEB_amd64_ARCH := amd64
 
 # Version info for binaries
-GIT_REVISION := $(shell cd $(APPHOME) && git rev-parse --short HEAD)
-GIT_BRANCH := $(shell cd $(APPHOME) && git rev-parse --abbrev-ref HEAD)
-IMAGE_TAG := $(shell cd $(APPHOME) && ./tools/image-tag)
-VPREFIX := github.com/prometheus/common/version
-
-GO_LDFLAGS := -s -w -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-DYN_GO_FLAGS := -ldflags "$(GO_LDFLAGS)" -tags netgo -mod vendor
 CGO_ENABLED := 1
 GOARM := 7
+VPREFIX := github.com/prometheus/common/version
+
+# Can only expand these after the git checkout
+GIT_REVISION = $(shell cd $(APPHOME) && git rev-parse --short HEAD)
+GIT_BRANCH = $(shell cd $(APPHOME) && git rev-parse --abbrev-ref HEAD)
+IMAGE_TAG = $(shell cd $(APPHOME) && ./tools/image-tag)
+
+GO_LDFLAGS = -s -w -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+DYN_GO_FLAGS = -ldflags "$(GO_LDFLAGS)" -tags netgo -mod vendor
 
 # CC Toolchain mapping
 CC_FOR_linux_arm := arm-linux-gnueabihf-gcc
@@ -51,6 +53,8 @@ $(APPHOME): $(GOPATH)
 	cd $(APPHOME) && git checkout $(VERSION)
 
 $(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
+	echo $(GIT_REVISION) && \
+	echo $(IMAGE_TAG) && \
 	cd $(APPHOME) && \
 	CC=$(CC_FOR_linux_$*) GOOS=linux GOARCH=$* go build $(DYN_GO_FLAGS) -o dist/$(DEBNAME)_linux_$* $(GO_BUILD_SOURCE)
 	chmod +x $@
