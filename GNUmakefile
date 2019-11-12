@@ -16,8 +16,21 @@ APPHOME := $(GOPATH)/src/$(APP_REMOTE)
 DEB_arm_ARCH := armhf
 DEB_amd64_ARCH := amd64
 
+# Version info for binaries
+GIT_REVISION := $(shell cd $(APPHOME) && git rev-parse --short HEAD)
+GIT_BRANCH := $(shell cd $(APPHOME) && git rev-parse --abbrev-ref HEAD)
+IMAGE_TAG := $(shell cd $(APPHOME) && ./tools/image-tag)
+VPREFIX := github.com/prometheus/common/version
+
+GO_LDFLAGS := -s -w -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+DYN_GO_FLAGS := -ldflags "$(GO_LDFLAGS)" -tags netgo -mod vendor
+CGO_ENABLED := 1
+GOARM := 7
+
 # CC Toolchain mapping
-CC_FOR_LINUX_ARM := arm-linux-gnueabi-gcc
+CC_FOR_linux_arm := arm-linux-gnueabihf-gcc
+CC_FOR_linux_amd64 := gcc
+
 
 .EXPORT_ALL_VARIABLES:
 
@@ -38,10 +51,11 @@ $(APPHOME): $(GOPATH)
 	cd $(APPHOME) && git checkout $(VERSION)
 
 $(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
-	cd $(APPHOME) && GOOS=linux GOARCH=$* go build -o dist/$(DEBNAME)_linux_$* $(GO_BUILD_SOURCE)
+	cd $(APPHOME) && \
+	CC=$(CC_FOR_linux_$*) GOOS=linux GOARCH=$* go build $(DYN_GO_FLAGS) -o dist/$(DEBNAME)_linux_$* $(GO_BUILD_SOURCE)
 
 $(DEBNAME)_$(DEBVERSION)_%.deb: $(APPHOME)/dist/$(DEBNAME)_linux_%
-	bundle exec fpm -s dir -t deb -n $(DEBNAME) --description "$(APPDESCRIPTION)" --url $(APPURL) --deb-changelog $(APPHOME)/CHANGELOG.md --prefix / -a $(DEB_$*_ARCH) -v $(DEBVERSION) --before-install deb_scripts/before_install.sh --after-remove deb_scripts/after_remove.sh --deb-systemd promtail.service --config-files /etc/promtail/promtail.yml promtail.yml=/etc/promtail/promtail.yml $<=/usr/bin/promtail
+	bundle exec fpm -f -s dir -t deb -n $(DEBNAME) --description "$(APPDESCRIPTION)" --url $(APPURL) --deb-changelog $(APPHOME)/CHANGELOG.md --prefix / -a $(DEB_$*_ARCH) -v $(DEBVERSION) --before-install deb_scripts/before_install.sh --after-remove deb_scripts/after_remove.sh --deb-systemd promtail.service --config-files /etc/promtail/promtail.yml promtail.yml=/etc/promtail/promtail.yml $<=/usr/bin/promtail
 
 .PHONY: clean
 clean:

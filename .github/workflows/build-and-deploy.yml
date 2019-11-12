@@ -12,8 +12,8 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Install libsystemd-dev
-        run: sudo apt install libsystemd-dev
+      - name: Install libsystemd-dev & cross-compiler
+        run: sudo apt install -y libsystemd-dev gcc-multilib-arm-linux-gnueabihf
       - name: Set up Go 1.13
         uses: actions/setup-go@v1
         with:
