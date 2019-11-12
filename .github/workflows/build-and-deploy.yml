@@ -50,7 +50,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: changelog
-          path: gopath/src/github.com/grafana/loki/CHANGELOG.md
+          path: gopath/src/github.com/grafana/loki
       - name: Set up Ruby 2.6
         uses: actions/setup-ruby@v1
         with:
