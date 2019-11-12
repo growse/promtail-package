@@ -57,9 +57,9 @@ $(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
 	echo $(IMAGE_TAG) && \
 	cd $(APPHOME) && \
 	CC=$(CC_FOR_linux_$*) GOOS=linux GOARCH=$* go build $(DYN_GO_FLAGS) -o dist/$(DEBNAME)_linux_$* $(GO_BUILD_SOURCE)
-	chmod +x $@
 
 $(DEBNAME)_$(DEBVERSION)_%.deb: $(APPHOME)/dist/$(DEBNAME)_linux_%
+	chmod +x $<
 	bundle exec fpm -f -s dir -t deb -n $(DEBNAME) --description "$(APPDESCRIPTION)" --url $(APPURL) --deb-changelog $(APPHOME)/CHANGELOG.md --prefix / -a $(DEB_$*_ARCH) -v $(DEBVERSION) --before-install deb_scripts/before_install.sh --after-remove deb_scripts/after_remove.sh --deb-systemd promtail.service --config-files /etc/promtail/promtail.yml promtail.yml=/etc/promtail/promtail.yml $<=/usr/bin/promtail
 
 .PHONY: clean
