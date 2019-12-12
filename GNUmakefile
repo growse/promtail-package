@@ -19,12 +19,8 @@ DEB_amd64_ARCH := amd64
 # Version info for binaries
 CGO_ENABLED := 1
 GOARM := 7
-VPREFIX := github.com/prometheus/common/version
+VPREFIX := github.com/grafana/loki/pkg/build
 
-# Can only expand these after the git checkout
-GIT_REVISION = $(shell cd $(APPHOME) && git rev-parse --short HEAD)
-GIT_BRANCH = $(shell cd $(APPHOME) && git rev-parse --abbrev-ref HEAD)
-IMAGE_TAG = $(shell cd $(APPHOME) && ./tools/image-tag)
 
 GO_LDFLAGS = -s -w -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 DYN_GO_FLAGS = -ldflags "$(GO_LDFLAGS)" -tags netgo -mod vendor
@@ -53,8 +49,13 @@ $(APPHOME): $(GOPATH)
 	cd $(APPHOME) && git checkout $(VERSION)
 
 $(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
+	$(eval GIT_REVISION := $(shell cd $(APPHOME) && git rev-parse --short HEAD))
+	$(eval GIT_BRANCH := $(shell cd $(APPHOME) && git rev-parse --abbrev-ref HEAD))
+	$(eval IMAGE_TAG := $(shell cd $(APPHOME) && ./tools/image-tag))
 	echo $(GIT_REVISION) && \
+	echo $(GIT_BRANCH) && \
 	echo $(IMAGE_TAG) && \
+	echo $(DYN_GO_FLAGS) && \
 	cd $(APPHOME) && \
 	CC=$(CC_FOR_linux_$*) GOOS=linux GOARCH=$* go build $(DYN_GO_FLAGS) -o dist/$(DEBNAME)_linux_$* $(GO_BUILD_SOURCE)
 
