@@ -45,7 +45,7 @@ $(GOPATH):
 	mkdir $(GOPATH)
 
 $(APPHOME): $(GOPATH)
-	git clone --depth 1 https://$(APP_REMOTE) $(APPHOME)
+	git clone --depth 1 --branch $(VERSION) https://$(APP_REMOTE) $(APPHOME)
 	cd $(APPHOME) && git checkout $(VERSION)
 
 $(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
