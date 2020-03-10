@@ -18,7 +18,7 @@ DEB_amd64_ARCH := amd64
 
 # Version info for binaries
 CGO_ENABLED := 1
-GOARM := 7
+GOARM := 6
 VPREFIX := github.com/grafana/loki/pkg/build
 
 
