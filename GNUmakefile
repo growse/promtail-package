@@ -26,7 +26,7 @@ GO_LDFLAGS = -s -w -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IM
 DYN_GO_FLAGS = -ldflags "$(GO_LDFLAGS)" -tags netgo -mod vendor
 
 # CC Toolchain mapping
-CC_FOR_linux_arm := arm-linux-gnueabihf-gcc
+CC_FOR_linux_arm := arm-linux-gnueabi-gcc
 CC_FOR_linux_amd64 := gcc
 
 
