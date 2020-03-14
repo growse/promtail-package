@@ -10,10 +10,10 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Install libsystemd-dev & cross-compiler
-        run: sudo apt install -y libsystemd-dev gcc-multilib-arm-linux-gnueabi
+        run: apt update && apt install -y libsystemd-dev gcc-multilib-arm-linux-gnueabi git
       - name: Set up Go 1.14
         uses: actions/setup-go@v1
         with:
@@ -35,7 +35,7 @@ jobs:
           path: gopath/src/github.com/grafana/loki/CHANGELOG.md
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     if: github.event_name != 'pull_request'
     needs: build
     steps:
