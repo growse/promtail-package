@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: Install libsystemd-dev & cross-compiler
-        run: apt update && apt install -y libsystemd-dev gcc-multilib-arm-linux-gnueabi git
+        run: sudo apt update && sudo apt install -y libsystemd-dev gcc-multilib-arm-linux-gnueabi git
       - name: Set up Go 1.14
         uses: actions/setup-go@v1
         with:
