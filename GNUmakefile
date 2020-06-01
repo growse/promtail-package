@@ -3,7 +3,7 @@ APP_REMOTE := github.com/grafana/loki
 VERSION := v1.4.1
 APPDESCRIPTION := Log agent for Loki
 APPURL := https://github.com/grafana/loki/blob/master/docs/clients/promtail/
-ARCH := amd64 arm
+ARCH := amd64 arm arm64
 GO_BUILD_SOURCE := ./cmd/promtail
 
 # Setup
@@ -14,6 +14,7 @@ APPHOME := $(GOPATH)/src/$(APP_REMOTE)
 
 # Let's map from go architectures to deb architectures, because they're not the same!
 DEB_arm_ARCH := armhf
+DEB_arm64_ARCH := arm64
 DEB_amd64_ARCH := amd64
 
 # Version info for binaries
@@ -52,12 +53,9 @@ $(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
 	$(eval GIT_REVISION := $(shell cd $(APPHOME) && git rev-parse --short HEAD))
 	$(eval GIT_BRANCH := $(shell cd $(APPHOME) && git rev-parse --abbrev-ref HEAD))
 	$(eval IMAGE_TAG := $(shell cd $(APPHOME) && ./tools/image-tag))
-	echo $(GIT_REVISION) && \
-	echo $(GIT_BRANCH) && \
-	echo $(IMAGE_TAG) && \
-	echo $(DYN_GO_FLAGS) && \
 	cd $(APPHOME) && \
 	CC=$(CC_FOR_linux_$*) GOOS=linux GOARCH=$* go build $(DYN_GO_FLAGS) -o dist/$(DEBNAME)_linux_$* $(GO_BUILD_SOURCE)
+	upx $@
 
 $(DEBNAME)_$(DEBVERSION)_%.deb: $(APPHOME)/dist/$(DEBNAME)_linux_%
 	chmod +x $<
