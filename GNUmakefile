@@ -1,6 +1,6 @@
 DEBNAME := promtail
 APP_REMOTE := github.com/grafana/loki
-VERSION := v1.5.0
+VERSION := v1.6.0
 APPDESCRIPTION := Log agent for Loki
 APPURL := https://github.com/grafana/loki/blob/master/docs/clients/promtail/
 ARCH := amd64 arm arm64
