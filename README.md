@@ -7,7 +7,7 @@ I needed a deb file for Grafana's Loki Promtail, so I made this. Result gets put
 Both amd and armhf debs are currently produced.
 
 ```
-deb http://apt.growse.com/ stable main
+deb https://apttoo.growse.com/ stablish main
 ```
 
-More details are available on https://apt.growse.com/
+More details are available on https://apttoo.growse.com/
