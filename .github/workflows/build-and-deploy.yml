@@ -67,7 +67,6 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
       - name: Upload to Apt repo
         env:
-          KEY_PASSPHRASE: ${{ secrets.DEBSIGN_KEY_PASSPHRASE }}
           APT_CREDENTIALS: ${{ secrets.APT_CREDENTIALS }}
         run: |
           echo $APT_CREDENTIALS > aptly-auth
