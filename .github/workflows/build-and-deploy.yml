@@ -68,6 +68,7 @@ jobs:
       - name: Upload to Apt repo
         env:
           APT_CREDENTIALS: ${{ secrets.APT_CREDENTIALS }}
+          APT_KEY_PASSPHRASE: ${{ secrets.APT_KEY_PASSPHRASE }}
         run: |
           echo $APT_CREDENTIALS > aptly-auth
           find -type f -name "*.deb" -exec curl -f --netrc-file aptly-auth -XPOST -F file=@{} https://apttoo.growse.com/api/files/promtail \;
@@ -75,4 +76,4 @@ jobs:
           echo $result
           export failed=$(echo $result | jq '.FailedFiles | length')
           if [[ "$failed" != "0" ]]; then exit 1; fi
-          curl -f --netrc-file aptly-auth -X PUT https://apttoo.growse.com/api/publish/:./stablish
+          curl -f --netrc-file aptly-auth -X PUT -H"Content-type: application/json" --data '{"Signing":{"Passphrase":"'"$APT_KEY_PASSPHRASE"'","Batch":true}}' https://apttoo.growse.com/api/publish/:./stablish
