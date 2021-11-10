@@ -20,7 +20,7 @@ DEB_amd64_ARCH := amd64
 # Version info for binaries
 CGO_ENABLED := 1
 GOARM := 6
-VPREFIX := github.com/grafana/loki/pkg/build
+VPREFIX := github.com/grafana/loki/pkg/util/build
 
 
 GO_LDFLAGS = -s -w -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
