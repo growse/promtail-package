@@ -1,0 +1,14 @@
+---
+queue_rules:
+  - name: default
+    conditions:
+      - "check-success=Build"
+
+pull_request_rules:
+  - name: Automatic merge on approval
+    conditions:
+      - "check-success=Build"
+    actions:
+      queue:
+        name: default
+        method: rebase
