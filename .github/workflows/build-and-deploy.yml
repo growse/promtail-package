@@ -43,12 +43,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
       - name: Download site artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: dist
           path: gopath/src/github.com/grafana/loki/dist
       - name: Download changelog artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: changelog
           path: gopath/src/github.com/grafana/loki
