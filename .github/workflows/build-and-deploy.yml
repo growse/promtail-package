@@ -25,12 +25,12 @@ jobs:
       - name: Build
         run: make build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: gopath/src/github.com/grafana/loki/dist
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: changelog
           path: gopath/src/github.com/grafana/loki/CHANGELOG.md
