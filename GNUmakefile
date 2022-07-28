@@ -1,6 +1,7 @@
 DEBNAME := promtail
 APP_REMOTE := github.com/grafana/loki
-VERSION := v2.4.1
+# renovate: datasource=github-releases depName=grafana/loki
+PROMTAIL_VERSION := v2.4.1
 APPDESCRIPTION := Log agent for Loki
 APPURL := https://github.com/grafana/loki/blob/master/docs/clients/promtail/
 ARCH := amd64 arm arm64
@@ -8,7 +9,7 @@ GO_BUILD_SOURCE := ./clients/cmd/promtail
 
 # Setup
 BUILD_NUMBER ?= 0
-DEBVERSION := $(VERSION:v%=%)-$(BUILD_NUMBER)
+DEBVERSION := $(PROMTAIL_VERSION:v%=%)-$(BUILD_NUMBER)
 GOPATH := $(abspath gopath)
 APPHOME := $(GOPATH)/src/$(APP_REMOTE)
 
@@ -47,8 +48,8 @@ $(GOPATH):
 	mkdir $(GOPATH)
 
 $(APPHOME): $(GOPATH)
-	git clone --depth 1 --branch $(VERSION) https://$(APP_REMOTE) $(APPHOME)
-	cd $(APPHOME) && git checkout $(VERSION)
+	git clone --depth 1 --branch $(PROMTAIL_VERSION) https://$(APP_REMOTE) $(APPHOME)
+	cd $(APPHOME) && git checkout $(PROMTAIL_VERSION)
 
 $(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
 	$(eval GIT_REVISION := $(shell cd $(APPHOME) && git rev-parse --short HEAD))
@@ -59,10 +60,33 @@ $(APPHOME)/dist/$(DEBNAME)_linux_%: $(APPHOME)
 	upx $@
 
 $(DEBNAME)_$(DEBVERSION)_%.deb: $(APPHOME)/dist/$(DEBNAME)_linux_%
-	chmod +x $<
-	bundle exec fpm -f -s dir -t deb --license Apache --deb-priority optional --maintainer github@growse.com --vendor https://grafana.com/ -n $(DEBNAME) --description "$(APPDESCRIPTION)" --url $(APPURL) --deb-changelog $(APPHOME)/CHANGELOG.md --prefix / -a $(DEB_$*_ARCH) -v $(DEBVERSION) --before-install deb_scripts/before_install.sh --before-upgrade deb_scripts/before_upgrade.sh --after-remove deb_scripts/after_remove.sh --deb-systemd promtail.service --config-files /etc/promtail/promtail.yml promtail.yml=/etc/promtail/promtail.yml $<=/usr/bin/promtail
+	bundle exec fpm -f \
+	-s dir \
+	-t deb \
+	--license Apache \
+	--deb-priority optional \
+	--deb-systemd-enable \
+	--deb-systemd-restart-after-upgrade \
+	--deb-systemd-auto-start \
+	--maintainer github@growse.com \
+	--vendor https://grafana.com/ \
+	-n $(DEBNAME) \
+	--description "$(APPDESCRIPTION)" \
+	--url $(APPURL) \
+	--deb-changelog $(APPHOME)/CHANGELOG.md \
+	--prefix / \
+	-a $(DEB_$*_ARCH) \
+	-v $(DEBVERSION) \
+	--before-install deb_scripts/before_install.sh \
+	--before-upgrade deb_scripts/before_upgrade.sh \
+	--after-remove deb_scripts/after_remove.sh \
+	--deb-systemd deb_scripts/promtail.service \
+	--config-files /etc/promtail/promtail.yml \
+	promtail.yml=/etc/promtail/promtail.yml \
+	$<=/usr/bin/promtail
 
 .PHONY: clean
 clean:
+	chmod -R +w gopath
 	rm -f *.deb
 	rm -rf $(GOPATH)
