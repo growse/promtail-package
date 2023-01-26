@@ -1,7 +1,7 @@
 DEBNAME := promtail
 APP_REMOTE := github.com/grafana/loki
 # renovate: datasource=github-releases depName=grafana/loki
-PROMTAIL_VERSION := v2.7.1
+PROMTAIL_VERSION := v2.7.2
 APPDESCRIPTION := Log agent for Loki
 APPURL := https://github.com/grafana/loki/blob/master/docs/clients/promtail/
 ARCH := amd64 arm arm64
