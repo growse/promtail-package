@@ -23,7 +23,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ${APT_DEPENDENCIES}
         if: ${{ env.APT_DEPENDENCIES != '' }}        
       - name: Set up Golang
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: 1.18
       - name: Set up Ruby
