@@ -15,7 +15,8 @@ name: Build, package and publish
 jobs:
   build:
     name: Build & Package
-    runs-on: ubuntu-22.04
+    # Check GLIBC versioning on clients if you upgrade this
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
