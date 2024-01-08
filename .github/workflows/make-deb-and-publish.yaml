@@ -19,12 +19,12 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y ${APT_DEPENDENCIES}
         if: ${{ env.APT_DEPENDENCIES != '' }}
       - name: Set up Golang
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -34,7 +34,7 @@ jobs:
         env:
           BUILD_NUMBER: ${{ github.run_number }}
       - name: Upload deb file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4
         with:
           name: deb
           path: "*.deb"
@@ -45,9 +45,9 @@ jobs:
     needs: build
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Download deb artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4
         with:
           name: deb
       - name: Upload to Apt repo
