@@ -16,15 +16,18 @@ jobs:
   build:
     name: Build & Package
     # Check GLIBC versioning on clients if you upgrade this
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container: debian:bookworm-slim
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Install build dependencies
-        run: sudo apt-get update && sudo apt-get install -y ${APT_DEPENDENCIES}
+        run: apt-get update && apt-get install -y ${APT_DEPENDENCIES}
         if: ${{ env.APT_DEPENDENCIES != '' }}
       - name: Set up Golang
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5
+        with:
+          go-version: 1.21
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
