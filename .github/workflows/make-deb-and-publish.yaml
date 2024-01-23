@@ -1,11 +1,18 @@
 ---
 env:
   PACKAGE_NAME: promtail
-  APT_DEPENDENCIES: "libsystemd-dev gccgo-aarch64-linux-gnu gccgo-arm-linux-gnueabi"
+  PACKAGE_VERSION: v2.9.3
+  PACKAGE_DESCRIPTION: "Promtail is an agent which ships the contents of local logs to a private Loki instance or Grafana Cloud. It is usually deployed to every machine that has applications needed to be monitored."
+  APT_DEPENDENCIES: "git build-essential libsystemd-dev gccgo-aarch64-linux-gnu gccgo-arm-linux-gnueabi curl xz-utils"
 
 name: Build, package and publish
 "on":
   push:
+    paths-ignore:
+      - "*.md"
+      - LICENSE
+      - .github/renovate.json
+      - .gitignore
     branches:
       - main
   pull_request:
@@ -15,44 +22,158 @@ name: Build, package and publish
 jobs:
   build:
     name: Build & Package
-    # Check GLIBC versioning on clients if you upgrade this
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch:
+          - amd64
+          - arm64
+          - arm
+      fail-fast: true
     container: debian:bookworm-slim
     steps:
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Install build dependencies
         run: apt-get update && apt-get install -y ${APT_DEPENDENCIES}
         if: ${{ env.APT_DEPENDENCIES != '' }}
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        with:
+          repository: grafana/loki.git
+          ref: ${{ env.PACKAGE_VERSION }}
       - name: Set up Golang
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5
         with:
           go-version: 1.21
+          cache: false
+      - id: go-cache-paths
+        run: |
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+      - name: Golang cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.go-cache-paths.outputs.go-build }}
+            ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-${{ matrix.goarch }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.goarch }}-
+      - name: Build
+        run: |
+          case ${ARCH} in
+            amd64)
+            export CC=gcc;;
+            arm64)
+            export CC=aarch64-linux-gnu-gcc;;
+            arm)
+            export CC=arm-linux-gnueabi-gcc;;
+          esac
+          git config --global --add safe.directory '*'
+          export GIT_REVISION=$(git rev-parse --short HEAD)
+          echo $GIT_REVISION
+          export GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo $GIT_BRANCH
+          export IMAGE_TAG=$(./tools/image-tag)
+          echo $IMAGE_TAG
+          export DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          GOOS=linux GOARCH=${ARCH} go build -ldflags '-s -w -X ${VPREFIX}.Branch=${GIT_BRANCH} -X ${VPREFIX}.Version=${IMAGE_TAG} -X ${VPREFIX}.Revision=${GIT_REVISION} -X ${VPREFIX}.BuildUser=$(whoami)@$(hostname) -X ${VPREFIX}.BuildDate=${DATE}' -tags netgo -mod vendor --tags=promtail_journal_enabled -o dist/${PACKAGE_NAME}_linux_${ARCH} ./clients/cmd/promtail
+        env:
+          ARCH: ${{ matrix.goarch }}
+          VPREFIX: github.com/grafana/loki/pkg/util/build
+          CGO_ENABLED: 1
+          GOARM: 6
+      - name: Install upx
+        run: |
+          curl -L -O https://github.com/upx/upx/releases/download/v4.2.2/upx-4.2.2-amd64_linux.tar.xz
+          tar -xvf upx-4.2.2-amd64_linux.tar.xz
+          mv upx-4.2.2-amd64_linux/upx /usr/local/bin
+      - name: Squish
+        run: upx dist/${PACKAGE_NAME}_linux_${ARCH}
+        env:
+          ARCH: ${{ matrix.goarch }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4
+        with:
+          name: binary-${{ matrix.goarch }}
+          path: dist/${{ env.PACKAGE_NAME }}_linux_${{ matrix.goarch }}
+
+  build-package:
+    name: Build Deb Package
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch:
+          - amd64
+          - arm64
+          - arm
+      fail-fast: true
+    needs: build
+    steps:
+      - name: Check out code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      - name: Make deb package
-        run: make -j$(nproc) package
+      - name: Download build artifact
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4
+        with:
+          name: binary-${{ matrix.goarch }}
+      - name: Package
+        run: |
+          case ${ARCH} in
+            amd64)
+            export DEB_ARCH=amd64;;
+            arm)
+            export DEB_ARCH=armhf;;
+            arm64)
+            export DEB_ARCH=aarch64;;
+          esac
+          chmod +x ${PACKAGE_NAME}_*
+          bundle exec fpm -f \
+            -s dir \
+            -t deb \
+          	--license Apache \
+          	--deb-priority optional \
+          	--deb-systemd-enable \
+          	--deb-systemd-restart-after-upgrade \
+          	--deb-systemd-auto-start \
+          	--maintainer github@growse.com \
+          	--vendor https://grafana.com/ \
+          	-n ${DEB_NAME} \
+          	--description "${APP_DESCRIPTION}" \
+          	--url ${APP_URL} \
+          	--prefix / \
+          	-a ${DEB_ARCH} \
+          	-v ${PACKAGE_VERSION}-$(printf "%04d" $GITHUB_RUN_NUMBER) \
+          	--before-install deb_scripts/before_install.sh \
+          	--before-upgrade deb_scripts/before_upgrade.sh \
+          	--after-remove deb_scripts/after_remove.sh \
+          	--deb-systemd deb_scripts/promtail.service \
+          	--config-files /etc/promtail/promtail.yml \
+          	promtail.yml=/etc/promtail/promtail.yml \
+          	promtail_linux_${ARCH}=/usr/bin/promtail
         env:
-          BUILD_NUMBER: ${{ github.run_number }}
-      - name: Upload deb file
+          DEB_NAME: ${{ env.PACKAGE_NAME }}
+          APP_DESCRIPTION: ${{ env.PACKAGE_DESCRIPTION }}
+          APP_URL: https://github.com/grafana/loki/blob/master/docs/clients/promtail/
+          ARCH: ${{ matrix.goarch }}
+          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
+      - name: Upload build artifact
         uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4
         with:
-          name: deb
+          name: deb-package-${{ matrix.goarch }}
           path: "*.deb"
   publish:
     name: Publish
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
-    needs: build
+    needs: build-package
     steps:
-      - name: Check out code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Download deb artifact
         uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4
         with:
-          name: deb
+          pattern: deb-package-*
+          merge-multiple: true
       - name: Upload to Apt repo
         env:
           APT_CREDENTIALS: ${{ secrets.APT_CREDENTIALS }}
