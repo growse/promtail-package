@@ -115,7 +115,7 @@ jobs:
         with:
           bundler-cache: true
       - name: Download build artifact
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4
         with:
           name: binary-${{ matrix.goarch }}
       - name: Package
@@ -170,7 +170,7 @@ jobs:
     needs: build-package
     steps:
       - name: Download deb artifact
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4
         with:
           pattern: deb-package-*
           merge-multiple: true
