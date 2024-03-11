@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     arr-pm (0.0.12)
-    backports (3.24.1)
+    backports (3.25.0)
     cabin (0.9.0)
     clamp (1.0.1)
     dotenv (3.1.0)
