@@ -5,5 +5,14 @@
     "github>growse/renovate-template:automerge-minor-and-patch",
     "github>growse/renovate-template:automerge-github-actions",
     "github>growse/renovate-template:makefile-version"
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^\\.github/workflows/.+\\.yaml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.+: (?<currentValue>.*)"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    }
   ]
 }
