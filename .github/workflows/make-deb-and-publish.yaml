@@ -92,7 +92,7 @@ jobs:
         env:
           ARCH: ${{ matrix.goarch }}
       - name: Upload artifact
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4
         with:
           name: binary-${{ matrix.goarch }}
           path: dist/${{ env.PACKAGE_NAME }}_linux_${{ matrix.goarch }}
@@ -160,7 +160,7 @@ jobs:
           ARCH: ${{ matrix.goarch }}
           PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
       - name: Upload build artifact
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4
         with:
           name: deb-package-${{ matrix.goarch }}
           path: "*.deb"
