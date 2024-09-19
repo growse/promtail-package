@@ -2,7 +2,7 @@
 env:
   PACKAGE_NAME: promtail
   # renovate: datasource=github-releases depName=grafana/loki
-  PACKAGE_VERSION: v3.1.1
+  PACKAGE_VERSION: v3.2.0
   PACKAGE_DESCRIPTION: "Promtail is an agent which ships the contents of local logs to a private Loki instance or Grafana Cloud. It is usually deployed to every machine that has applications needed to be monitored."
   APT_DEPENDENCIES: "git build-essential libsystemd-dev gccgo-aarch64-linux-gnu gccgo-arm-linux-gnueabi curl xz-utils"
 
